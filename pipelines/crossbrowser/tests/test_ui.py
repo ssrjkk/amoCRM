@@ -2,7 +2,6 @@ import pytest
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from config.settings import BASE_URL
 
 
 pytestmark = [pytest.mark.crossbrowser, pytest.mark.sel_grid]

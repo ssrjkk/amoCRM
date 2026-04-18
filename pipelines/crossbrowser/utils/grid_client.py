@@ -2,7 +2,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from selenium.webdriver.edge.options import Options as EdgeOptions
-from config.settings import SELENIUM_GRID, BROWSERS
+from config.settings import SELENIUM_GRID
 import logging
 import pytest
 

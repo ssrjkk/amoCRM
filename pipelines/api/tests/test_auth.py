@@ -1,5 +1,4 @@
 import pytest
-import os
 
 
 pytestmark = [pytest.mark.api, pytest.mark.smoke]

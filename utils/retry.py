@@ -2,12 +2,6 @@
 import time
 import functools
 from typing import Callable, TypeVar, ParamSpec
-from tenacity import (
-    retry as tenacity_retry,
-    stop_after_attempt,
-    wait_exponential,
-    retry_if_exception_type,
-)
 
 from core.logger import get_logger
 

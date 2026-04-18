@@ -1,5 +1,4 @@
 import pytest
-import json
 
 
 pytestmark = [pytest.mark.api, pytest.mark.crud]
@@ -36,7 +35,7 @@ class TestContactsCRUD:
 
         try:
             api_client.contacts.delete(contact_id)
-        except:
+        except Exception:
             pass
 
     def test_pagination_contacts(self, api_client):
@@ -67,7 +66,7 @@ class TestCompaniesCRUD:
 
         try:
             api_client.companies.delete(company_id)
-        except:
+        except Exception:
             pass
 
 
@@ -98,7 +97,7 @@ class TestLeadsCRUD:
 
         try:
             api_client.leads.delete(lead_id)
-        except:
+        except Exception:
             pass
 
 

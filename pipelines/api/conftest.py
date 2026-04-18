@@ -49,7 +49,7 @@ def test_contact(api_client):
         yield contact_id
         try:
             api_client.delete_contact(contact_id)
-        except:
+        except Exception:
             pass
 
 

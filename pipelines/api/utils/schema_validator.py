@@ -1,8 +1,6 @@
-import jsonschema
+from pydantic import BaseModel
+from typing import Optional, List
 from jsonschema import validate as jsonschema_validate, ValidationError
-from pydantic import BaseModel, Field
-from typing import Optional, List, Any
-from datetime import datetime
 
 
 class AmoCRMAccount(BaseModel):

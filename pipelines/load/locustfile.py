@@ -1,4 +1,4 @@
-from locust import HttpUser, task, between, events
+from locust import task, between, events
 from locust.contrib.fasthttp import FastHttpUser
 from pipelines.load.thresholds import THRESHOLDS
 import logging
@@ -29,12 +29,12 @@ class AmoCRMUser(FastHttpUser):
 
     @task(10)
     def list_contacts(self):
-        with self.client.get(f"{BASE_URL}/contacts", headers=self.get_headers()) as resp:
+        with self.client.get(f"{BASE_URL}/contacts", headers=self.get_headers()):
             pass
 
     @task(5)
     def get_single_contact(self):
-        with self.client.get(f"{BASE_URL}/contacts/1", headers=self.get_headers()) as resp:
+        with self.client.get(f"{BASE_URL}/contacts/1", headers=self.get_headers()):
             pass
 
     @task(3)
@@ -44,17 +44,17 @@ class AmoCRMUser(FastHttpUser):
             f"{BASE_URL}/contacts",
             json=[{"name": name}],
             headers=self.get_headers()
-        ) as resp:
+        ):
             pass
 
     @task(8)
     def list_companies(self):
-        with self.client.get(f"{BASE_URL}/companies", headers=self.get_headers()) as resp:
+        with self.client.get(f"{BASE_URL}/companies", headers=self.get_headers()):
             pass
 
     @task(6)
     def list_leads(self):
-        with self.client.get(f"{BASE_URL}/leads", headers=self.get_headers()) as resp:
+        with self.client.get(f"{BASE_URL}/leads", headers=self.get_headers()):
             pass
 
     @task(4)
@@ -63,32 +63,32 @@ class AmoCRMUser(FastHttpUser):
             f"{BASE_URL}/leads",
             json=[{"name": f"Lead_{random.randint(1000,9999)}", "price": random.randint(1000, 100000)}],
             headers=self.get_headers()
-        ) as resp:
+        ):
             pass
 
     @task(2)
     def list_tasks(self):
-        with self.client.get(f"{BASE_URL}/tasks", headers=self.get_headers()) as resp:
+        with self.client.get(f"{BASE_URL}/tasks", headers=self.get_headers()):
             pass
 
     @task(5)
     def list_pipelines(self):
-        with self.client.get(f"{BASE_URL}/leads/pipelines", headers=self.get_headers()) as resp:
+        with self.client.get(f"{BASE_URL}/leads/pipelines", headers=self.get_headers()):
             pass
 
     @task(3)
     def list_users(self):
-        with self.client.get(f"{BASE_URL}/users", headers=self.get_headers()) as resp:
+        with self.client.get(f"{BASE_URL}/users", headers=self.get_headers()):
             pass
 
     @task(2)
     def list_tags(self):
-        with self.client.get(f"{BASE_URL}/tags", headers=self.get_headers()) as resp:
+        with self.client.get(f"{BASE_URL}/tags", headers=self.get_headers()):
             pass
 
     @task(1)
     def account_info(self):
-        with self.client.get(f"{BASE_URL}/account", headers=self.get_headers()) as resp:
+        with self.client.get(f"{BASE_URL}/account", headers=self.get_headers()):
             pass
 
 

@@ -4,7 +4,7 @@ import random
 import string
 import uuid
 from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any
 import faker
 
 

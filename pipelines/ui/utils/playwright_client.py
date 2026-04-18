@@ -1,7 +1,7 @@
+import pytest
 from playwright.sync_api import sync_playwright, Browser, Page, BrowserContext
 from config.settings import BASE_URL, BROWSERS
 import allure
-import os
 
 
 class PlaywrightClient:

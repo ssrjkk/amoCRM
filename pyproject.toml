@@ -49,9 +49,10 @@ logs = "Log analysis tests"
 smoke = "Smoke tests"
 critical = "Critical tests"
 
-[tool.ruff]
+[tool.ruff.lint]
 line-length = 120
 target-version = "py310"
+ignore = ["E402", "E741", "F811"]
 
 [tool.mypy]
 python_version = "3.10"

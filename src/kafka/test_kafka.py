@@ -1,7 +1,6 @@
 """Kafka tests - working examples."""
 
 import pytest
-import json
 import time
 
 

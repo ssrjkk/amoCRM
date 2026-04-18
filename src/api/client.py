@@ -1,11 +1,11 @@
 """AmoCRM API v4 Client."""
 
 import requests
-from typing import Optional, Any
+from typing import Optional
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-from core.config import get_settings, get_amocrm_api_url, get_amocrm_token
+from core.config import get_amocrm_api_url, get_amocrm_token
 from core.logger import get_logger
 
 logger = get_logger("api.client")

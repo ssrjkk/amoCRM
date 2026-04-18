@@ -1,6 +1,5 @@
 import pytest
 from pipelines.api.utils.http_client import AmoCRMClient
-from pipelines.db.utils.db_client import DBClient
 import os
 
 

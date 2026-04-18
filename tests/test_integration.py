@@ -5,7 +5,6 @@ import pytest
 from api.companies import CompaniesApi
 from api.contacts import ContactsApi
 from api.deals import DealsApi
-from api.users import UsersApi
 from validators.response_validator import ResponseValidator
 
 

@@ -4,7 +4,6 @@ import logging
 from typing import Any, Dict, Optional
 
 import requests
-from pydantic import BaseModel
 
 from core.http_client import HTTPClient
 

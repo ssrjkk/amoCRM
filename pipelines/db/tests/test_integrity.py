@@ -1,5 +1,4 @@
 import pytest
-from pipelines.db.utils.db_client import DBClient
 
 
 pytestmark = [pytest.mark.db, pytest.mark.integrity]

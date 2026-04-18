@@ -3,7 +3,7 @@
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from contextlib import contextmanager
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict
 
 from core.config import get_settings
 from core.logger import get_logger

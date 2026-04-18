@@ -1,7 +1,7 @@
 """API tests - working examples."""
 
 import pytest
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel
 
 
 pytestmark = pytest.mark.api

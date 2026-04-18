@@ -1,5 +1,4 @@
 from kubernetes import client, config
-from kubernetes.client import ApiClient
 from config.settings import K8S_NAMESPACE
 import logging
 import os

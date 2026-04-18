@@ -1,8 +1,7 @@
 import pytest
-from playwright.sync_api import sync_playwright, Page
+from playwright.sync_api import sync_playwright
 from config.settings import BASE_URL, BROWSERS
 import allure
-import os
 
 
 def pytest_configure(config):

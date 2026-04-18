@@ -1,11 +1,9 @@
 import json
 import logging
-import pytest
-from kafka import KafkaProducer as KafkaProducerClient
-from kafka import KafkaConsumer as KafkaConsumerClient
-from kafka.errors import NoBrokersAvailable
+from kafka import KafkaProducer as _KafkaProducer
+from kafka import KafkaConsumer as _KafkaConsumer
 from config.settings import KAFKA_BROKERS
-from typing import Callable, Optional, Any
+from typing import Callable, Optional
 import time
 
 logging.basicConfig(level=logging.INFO)
@@ -20,7 +18,7 @@ class KafkaProducerClient:
 
     def _get_producer(self):
         if not self._producer:
-            self._producer = KafkaProducerClient(
+            self._producer = _KafkaProducer(
                 bootstrap_servers=self.brokers,
                 value_serializer=self._serialize,
                 key_serializer=lambda k: k.encode("utf-8") if k else None,
@@ -57,25 +55,25 @@ class KafkaConsumerClient:
         topic: str,
         brokers: list = None,
         group_id: str = "test-consumer",
-        auto_offset_reset: str = "latest",
+        offset_reset: str = "latest",
         deserializer: str = "json",
     ):
         self.topic = topic
         self.brokers = brokers or KAFKA_BROKERS
         self.group_id = group_id
+        self.offset_reset = offset_reset
         self.deserializer = deserializer
         self._consumer = None
-        self.auto_offset_reset = auto_offset_reset
 
     def _get_consumer(self):
         if not self._consumer:
-            self._consumer = KafkaConsumerClient(
+            self._consumer = _KafkaConsumer(
                 self.topic,
                 bootstrap_servers=self.brokers,
                 group_id=self.group_id,
-                auto_offset_reset=self.auto_offset_reset,
-                enable_auto_commit=True,
+                auto_offset_reset=self.offset_reset,
                 value_deserializer=self._deserialize,
+                enable_auto_commit=True,
             )
         return self._consumer
 
@@ -84,56 +82,53 @@ class KafkaConsumerClient:
             return json.loads(value.decode("utf-8"))
         return value
 
-    def __iter__(self):
-        return self._get_consumer().__iter__()
+    def consume(self, timeout_ms: int = 5000, max_records: int = 1):
+        return self._get_consumer().poll(timeout_ms=timeout_ms, max_records=max_records)
 
-    def consume(self, timeout_sec: int = 10):
-        messages = []
-        start_time = time.time()
-        for msg in self._get_consumer():
-            if time.time() - start_time > timeout_sec:
-                break
-            messages.append(msg.value)
-        return messages
-
-    def wait_for(self, predicate: Callable[[dict], bool], timeout_sec: int = 30) -> Optional[dict]:
-        start_time = time.time()
-        for msg in self._get_consumer():
-            if predicate(msg.value):
-                logger.info(f"Found message: {msg.value}")
-                return msg.value
-            if time.time() - start_time > timeout_sec:
-                logger.warning("Timeout waiting for message")
-                return None
+    def wait_for(
+        self,
+        predicate: Callable[[dict], bool],
+        timeout_sec: int = 30,
+        poll_interval: float = 0.5,
+    ) -> Optional[dict]:
+        start = time.time()
+        while time.time() - start < timeout_sec:
+            records = self.consume()
+            for partition, messages in records.items():
+                for msg in messages:
+                    if predicate(msg.value):
+                        return msg.value
+            time.sleep(poll_interval)
         return None
-
-    def seek_to_beginning(self):
-        self._get_consumer().seek_to_beginning()
 
     def close(self):
         if self._consumer:
             self._consumer.close()
 
 
-@pytest.fixture(scope="session")
-def kafka_producer():
-    producer = KafkaProducerClient()
-    yield producer
-    producer.close()
+class KafkaClient:
+    def __init__(self, brokers: list = None):
+        self.brokers = brokers or KAFKA_BROKERS
+        self._producer = None
+        self._consumers = {}
 
+    @property
+    def producer(self):
+        if not self._producer:
+            self._producer = KafkaProducerClient(self.brokers)
+        return self._producer
 
-@pytest.fixture(scope="function")
-def kafka_consumer():
-    return None
+    def consumer(self, topic: str, group_id: str = None):
+        key = f"{topic}:{group_id}"
+        if key not in self._consumers:
+            self._consumers[key] = KafkaConsumerClient(topic, self.brokers, group_id)
+        return self._consumers[key]
 
+    def create_topic(self, topic: str, partitions: int = 1, replication: int = 1):
+        logger.info("Topic creation not implemented - using auto-create")
 
-@pytest.fixture(scope="session")
-def kafka_topics():
-    return {
-        "entity_created": "entity.created.events",
-        "entity_updated": "entity.updated.events",
-        "entity_deleted": "entity.deleted.events",
-        "contact_created": "contact.created.events",
-        "lead_created": "lead.created.events",
-        "dlq": "dead-letter-queue",
-    }
+    def close(self):
+        if self._producer:
+            self._producer.close()
+        for consumer in self._consumers.values():
+            consumer.close()

@@ -2,7 +2,6 @@
 
 from locust import HttpUser, task, between, events
 import random
-import json
 
 
 class UserScenario(HttpUser):

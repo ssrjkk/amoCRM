@@ -1,7 +1,6 @@
 """Wait utilities - ожиданиеCondition."""
 import time
 from typing import Callable, TypeVar, Optional
-from tenacity import retry, stop_after_attempt, wait_fixed
 
 from core.logger import get_logger
 

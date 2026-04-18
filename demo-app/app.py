@@ -2,7 +2,6 @@
 
 import os
 from datetime import datetime
-from typing import Optional
 from flask import Flask, request, jsonify
 import psycopg2
 from psycopg2.extras import RealDictCursor
@@ -76,7 +75,7 @@ def get_users():
         cur.close()
         conn.close()
         return jsonify({"users": [dict(u) for u in users]})
-    except Exception as e:
+    except Exception:
         return jsonify({"users": list(users_db.values())})
 
 
@@ -256,7 +255,7 @@ if __name__ == "__main__":
             init_db()
             print("Database initialized!")
             break
-        except Exception as e:
+        except Exception:
             print(f"Waiting for database... ({i + 1}/{max_retries})")
             time.sleep(2)
 

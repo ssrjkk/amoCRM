@@ -1,6 +1,5 @@
 """Core config for demo application."""
 
-import os
 from functools import lru_cache
 from typing import List
 from pydantic import Field

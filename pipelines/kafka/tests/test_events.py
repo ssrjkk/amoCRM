@@ -1,6 +1,5 @@
 import pytest
 from datetime import datetime
-import json
 
 
 pytestmark = [pytest.mark.kafka, pytest.mark.events]

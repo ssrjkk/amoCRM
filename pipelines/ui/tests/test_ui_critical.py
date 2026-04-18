@@ -5,7 +5,6 @@ from pipelines.ui.pages.home import (
     LoginPage,
     MainPage,
     ContactsListPage,
-    ContactCardPage,
     LeadsListPage,
     CompaniesListPage,
     TasksPage,

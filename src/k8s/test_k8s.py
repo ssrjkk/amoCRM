@@ -26,7 +26,7 @@ class TestAppHealth:
         start = time.time()
 
         try:
-            response = requests.get("http://localhost:8080/health", timeout=5)
+            requests.get("http://localhost:8080/health", timeout=5)
             load_time = (time.time() - start) * 1000
 
             assert load_time < 2000, f"Response time: {load_time:.2f}ms"
@@ -42,7 +42,7 @@ class TestAppHealth:
                 response = requests.get(f"http://localhost:8080{endpoint}", timeout=5)
                 assert response.status_code < 500
             except Exception:
-                pytest.skip(f"App not available")
+                pytest.skip("App not available")
 
 
 class TestK8sDeployment:

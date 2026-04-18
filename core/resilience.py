@@ -4,9 +4,8 @@ import time
 import random
 import logging
 from functools import wraps
-from typing import Callable, Any, Optional, Type
+from typing import Callable, Any, Optional
 from threading import Lock
-from datetime import datetime, timedelta
 
 logger = logging.getLogger(__name__)
 
@@ -172,7 +171,7 @@ def circuit_breaker(
                 result = func(*args, **kwargs)
                 circuit.record_success()
                 return result
-            except exceptions as e:
+            except exceptions:
                 circuit.record_failure()
                 raise
 

@@ -1,7 +1,6 @@
 """Allure utilities."""
+
 import allure
-from pathlib import Path
-from typing import Optional
 
 
 def attach_screenshot(name: str = "screenshot", page_or_driver=None):
@@ -9,7 +8,7 @@ def attach_screenshot(name: str = "screenshot", page_or_driver=None):
     try:
         if page_or_driver is None:
             return
-        
+
         # Playwright или Selenium
         if hasattr(page_or_driver, "screenshot"):
             # Playwright page
@@ -31,6 +30,7 @@ def attach_log(name: str, content: str):
 def attach_json(name: str, data: dict):
     """Прикрепить JSON."""
     import json
+
     allure.attach(json.dumps(data, indent=2), name=name, attachment_type=allure.AttachmentType.JSON)
 
 

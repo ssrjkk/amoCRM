@@ -1,6 +1,5 @@
 import pytest
 import requests
-from pipelines.k8s.utils.k8s_client import K8sClient
 from pipelines.api.utils.http_client import AmoCRMClient
 from config.settings import BASE_URL
 

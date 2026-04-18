@@ -1,6 +1,5 @@
 import pytest
 import requests
-from pipelines.k8s.utils.k8s_client import K8sClient
 from config.settings import BASE_URL
 
 

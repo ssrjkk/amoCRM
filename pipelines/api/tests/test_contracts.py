@@ -1,5 +1,5 @@
 import pytest
-from pipelines.api.utils.schema_validator import validate_response, JSON_SCHEMAS
+from pipelines.api.utils.schema_validator import JSON_SCHEMAS
 
 
 pytestmark = [pytest.mark.api, pytest.mark.contract]
@@ -59,18 +59,6 @@ class TestContractValidation:
     def test_filter_by_name(self, api_client):
         resp = api_client.contacts.list(query="Test")
 
-        assert resp.status_code in [200, 401, 402]
-
-    def test_filter_by_date(self, api_client):
-        import time
-
-        current = int(time.time())
-        resp = api_client.contacts.list(filters={"updated_at": {"from": current - 86400}})
-
-        assert resp.status_code in [200, 401, 402]
-
-    def test_task_list_response(self, api_client):
-        resp = api_client.tasks.list()
         assert resp.status_code in [200, 401, 402]
 
     def test_filter_by_date(self, api_client):

@@ -1,8 +1,7 @@
 """Response validator with Fluent DSL."""
 
 import logging
-import re
-from typing import Any, Callable, Optional
+from typing import Any, Callable
 
 import requests
 

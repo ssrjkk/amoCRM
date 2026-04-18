@@ -2,7 +2,6 @@
 
 import pytest
 import allure
-from typing import Generator
 
 from core.config import get_settings
 from core.logger import get_logger

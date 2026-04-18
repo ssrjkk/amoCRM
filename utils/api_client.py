@@ -3,7 +3,7 @@
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
-from typing import Optional, Dict, Any
+from typing import Optional, Dict
 
 from core.config import get_app_url
 from core.logger import get_logger
