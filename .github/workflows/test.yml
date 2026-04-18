@@ -1,0 +1,218 @@
+name: Tests
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'src/**'
+      - 'core/**'
+      - 'utils/**'
+      - 'tests/**'
+      - 'pyproject.toml'
+      - 'pytest.ini'
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      pipeline:
+        description: 'Pipeline to run'
+        required: false
+        type: choice
+        options:
+          - all
+          - api
+          - ui
+          - db
+          - kafka
+          - load
+          - k8s
+          - logs
+  schedule:
+    - cron: '0 2 * * *'  # Daily at 2 AM
+
+env:
+  AMOCRM_SUBDOMAIN: ${{ secrets.AMOCRM_SUBDOMAIN }}
+  AMOCRM_LONG_TOKEN: ${{ secrets.AMOCRM_LONG_TOKEN }}
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  KAFKA_BROKERS: ${{ secrets.KAFKA_BROKERS }}
+  KIBANA_URL: ${{ secrets.KIBANA_URL }}
+
+jobs:
+  # === Matrix of independent pipelines ===
+  test-api:
+    if: github.event.inputs.pipeline == 'all' || github.event.inputs.pipeline == 'api' || github.event_name != 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -e ".[api,test]"
+
+      - name: Run API tests
+        run: pytest src/api/ -m api -v --alluredir=reports/allure-api -n auto
+
+      - name: Upload Allure results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: allure-api
+          path: reports/allure-api/
+
+  test-ui:
+    if: github.event.inputs.pipeline == 'all' || github.event.inputs.pipeline == 'ui' || github.event_name != 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Playwright
+        run: |
+          pip install -e ".[ui,test]"
+          playwright install --with-deps chromium
+
+      - name: Run UI tests
+        run: pytest src/ui/ -m ui -v --alluredir=reports/allure-ui -n auto
+
+      - name: Upload Allure results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: allure-ui
+          path: reports/allure-ui/
+
+  test-db:
+    if: github.event.inputs.pipeline == 'all' || github.event.inputs.pipeline == 'db' || github.event_name != 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: pass
+          POSTGRES_DB: amocrm
+        ports:
+          - 5432:5432
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install -e ".[db,test]"
+
+      - name: Run DB tests
+        run: pytest src/db/ -m db -v --alluredir=reports/allure-db -n auto
+
+      - name: Upload Allure results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: allure-db
+          path: reports/allure-db/
+
+  test-kafka:
+    if: github.event.inputs.pipeline == 'all' || github.event.inputs.pipeline == 'kafka' || github.event_name != 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    services:
+      kafka:
+        image: confluentinc/cp-kafka:7.5.0
+        env:
+          KAFKA_BROKER_ID: 1
+          KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+        ports:
+          - 9092:9092
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install -e ".[kafka,test]"
+
+      - name: Wait for Kafka
+        run: sleep 15
+
+      - name: Run Kafka tests
+        run: pytest src/kafka/ -m kafka -v --alluredir=reports/allure-kafka -n auto
+
+      - name: Upload Allure results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: allure-kafka
+          path: reports/allure-kafka/
+
+  test-load:
+    if: github.event.inputs.pipeline == 'all' || github.event.inputs.pipeline == 'load' || github.event_name != 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Locust
+        run: pip install locust
+
+      - name: Run load test
+        run: |
+          locust -f src/load/locustfile.py \
+            --headless \
+            --users 50 \
+            --spawn-rate 10 \
+            --run-time 60s \
+            --host ${{ secrets.LOAD_TARGET_URL }} \
+            --csv reports/load
+
+      - name: Upload load results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: load-reports
+          path: reports/
+
+  # === Generate Allure Report ===
+  allure-report:
+    needs: [test-api, test-ui, test-db, test-kafka]
+    if: always() && (needs.test-api.result == 'success' || needs.test-ui.result == 'success' || needs.test-db.result == 'success' || needs.test-kafka.result == 'success')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all results
+        uses: actions/download-artifact@v4
+        with:
+          path: reports/
+
+      - name: Install Allure
+        run: |
+          curl -sL https://get.allure.io/install.sh | bash
+          echo "$ALLURE_HOME/bin" >> $GITHUB_PATH
+
+      - name: Generate report
+        run: allure generate reports/ -o allure-report --quiet
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: allure-report
+          destination_dir: allure
+
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report
+          path: allure-report/

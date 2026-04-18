@@ -1,7 +1,16 @@
+"""API tests conftest - совместимость."""
+
+import sys
+from pathlib import Path
+
+# Добавить корень проекта в путь для импорта из src/
+project_root = Path(__file__).parent.parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
 import pytest
-import os
-from pipelines.api.utils.http_client import AmoCRMClient
-from config.settings import AMOCRM_LONG_TOKEN, CLIENT_ID, CLIENT_SECRET, AMOCRM_SUBDOMAIN
+from src.api.client import AmoCRMClient
+from core.config import get_settings
 
 
 def pytest_configure(config):
@@ -11,69 +20,49 @@ def pytest_configure(config):
 
 
 @pytest.fixture(scope="session")
-def api_client():
-    token = os.getenv("AMOCRM_LONG_TOKEN", AMOCRM_LONG_TOKEN)
-    return AmoCRMClient(long_token=token)
+def api_client() -> AmoCRMClient:
+    token = get_settings().amocrm_long_token
+    return AmoCRMClient() if token else AmoCRMClient(token="")
 
 
 @pytest.fixture(scope="session")
 def api_token(api_client):
-    if not api_client.access_token:
+    if not api_client.token:
         pytest.skip("No LONG_TOKEN configured")
-    return api_client.access_token
+    return api_client.token
 
 
 @pytest.fixture(scope="session")
 def authenticated_client(api_client):
-    if not api_client.access_token:
+    if not api_client.token:
         pytest.skip("No LONG_TOKEN configured")
     return api_client
 
 
 @pytest.fixture(scope="function")
-def test_contact(authenticated_client):
-    resp = authenticated_client.contacts.create({
-        "name": "Test Contact",
-        "custom_fields_values": [
-            {"field_id": 1, "values": [{"value": "test@test.com"}]}
-        ]}
-    })
-    
+def test_contact(api_client):
+    resp = api_client.create_contact({"name": "Test Contact"})
     if resp.status_code != 200:
         yield None
     else:
         contact_id = resp.json()["_embedded"]["contacts"][0]["id"]
         yield contact_id
         try:
-            authenticated_client.contacts.delete(contact_id)
+            api_client.delete_contact(contact_id)
         except:
             pass
-
-
-@pytest.fixture(scope="function")
-def test_lead(authenticated_client):
-    resp = authenticated_client.leads.create({
-        "name": "Test Lead",
-        "price": 10000,
-    })
-    
-    if resp.status_code != 200:
-        yield None
-    else:
-        lead_id = resp.json()["_embedded"]["leads"][0]["id"]
-        yield lead_id
-        try:
-            authenticated_client.leads.delete(lead_id)
-        except:
-            pass
-
-
-@pytest.fixture(scope="session")
-def account(authenticated_client):
-    return authenticated_client.account.get()
 
 
 @pytest.fixture(scope="session")
 def api_base_url():
-    from config.settings import AMOCRM_API_BASE
-    return AMOCRM_API_BASE
+    from core.config import get_amocrm_api_url
+
+    return get_amocrm_api_url()
+
+
+@pytest.fixture(scope="session")
+def test_users():
+    return {
+        "admin": {"email": "admin@test.com", "password": "Admin123!"},
+        "user": {"email": "user@test.com", "password": "User123!"},
+    }

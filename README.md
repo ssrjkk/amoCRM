@@ -1,72 +1,138 @@
-# amoCRM QA Automation
+# amoCRM QA Automation Framework
 
-**Полная тестовая инфраструктура для amoCRM API v4**
+Модульный фреймворк для автоматизации тестирования amoCRM API v4.
 
----
+## Структура проекта
 
-## Пайплайны
-
-| Пайплайн | Стек | Файлы |
-|----------|------|-------|
-| **API** | pytest + requests + AmoCRMClient | `pipelines/api/` |
-| **UI** | Playwright + POM | `pipelines/ui/` |
-| **DB** | psycopg2 + PostgreSQL | `pipelines/db/` |
-| **Kafka** | kafka-python | `pipelines/kafka/` |
-| **Load** | Locust | `pipelines/load/` |
-| **K8s** | kubernetes | `pipelines/k8s/` |
-| **Cross-browser** | Selenium Grid | `pipelines/crossbrowser/` |
-| **Logs** | Elasticsearch | `pipelines/logs/` |
-
-## Быстрый старт
-
-```bash
-# Установка зависимостей
-pip install -r requirements.txt
-
-# Настройка переменных окружения
-export AMOCRM_LONG_TOKEN="ваш_долгосрочный_токен"
-export AMOCRM_SUBDOMAIN="ваш_аккаунт"
-
-# Запуск тестов
-pytest pipelines/api/ -m api -v -n auto
+```
+amocrm-qa/
+├── src/                    # Модульные пайплайны
+│   ├── api/               # API тесты
+│   ├── ui/               # UI тесты (Playwright)
+│   ├── db/               # Database тесты
+│   ├── kafka/            # Kafka тесты
+│   ├── load/             # Нагрузочные тесты
+│   ├── k8s/              # Kubernetes тесты
+│   └── logs/             # Log analysis
+├── core/                  # Общие компоненты
+│   ├── config.py         # Настройки (pydantic-settings)
+│   ├── logger.py        # JSON логгер
+│   ├── fixtures.py       # Базовые фикстуры
+│   └── allure.py         # Allure утилиты
+├── utils/                 # Утилиты
+│   ├── retry.py         # Retry декоратор
+│   ├── wait.py         # Wait утилиты
+│   └── schema.py        # Schema валидация
+├── tests/                # Интеграционные тесты
+├── infra/                # Docker + K8s
+│   └── docker-compose.yml
+├── .github/workflows/    # CI/CD
+├── pyproject.toml       # Зависимости
+├── Makefile             # Команды
+└── README.md
 ```
 
-## Настройка в GitHub Secrets
+## Быстрый старт (5 минут)
 
-- `AMOCRM_LONG_TOKEN` — долгосрочный токен amoCRM
+```bash
+# 1. Клонировать и перейти в папку
+cd amocrm-qa
+
+# 2. Установить зависимости
+pip install -e ".[all]"
+
+# 3. Настроить токен (в .env или GitHub Secrets)
+echo "AMOCRM_LONG_TOKEN=your_token" > .env
+echo "AMOCRM_SUBDOMAIN=your_subdomain" >> .env
+
+# 4. Запустить тесты
+make test-api
+```
+
+## Настройка
+
+### Переменные окружения
+
+Создайте файл `.env`:
+
+```env
+# amoCRM (обязательно)
+AMOCRM_LONG_TOKEN=your_long_token
+AMOCRM_SUBDOMAIN=your_subdomain
+
+# Database (опционально)
+DATABASE_URL=postgresql://user:pass@localhost:5432/amocrm
+
+# Kafka (опционально)
+KAFKA_BROKERS=localhost:9092
+```
+
+### GitHub Secrets
+
+- `AMOCRM_LONG_TOKEN` — долгосрочный токен
 - `AMOCRM_SUBDOMAIN` — домен аккаунта
 - `DATABASE_URL` — PostgreSQL
 - `KAFKA_BROKERS` — Kafka
-- `KIBANA_URL` — Kibana
-- `SELENIUM_GRID` — Selenium Grid URL
+- `LOAD_TARGET_URL` — URL для нагрузки
 
-## GitHub Actions
+## Запуск тестов
 
-Все 8 workflows в `.github/workflows/`:
-- `api.yml` — API тесты
-- `ui.yml` — UI тесты (Playwright)
-- `db.yml` — DB тесты
-- `kafka.yml` — Kafka тесты
-- `load.yml` — Нагрузочные тесты
-- `k8s_smoke.yml` — K8s smoke тесты
-- `crossbrowser.yml` — Cross-browser тесты
-- `logs.yml` — Log analysis
-- `all.yml` — Все тесты
+```bash
+# Один пайплайн
+make test-api
+make test-ui
+make test-db
 
-## Структура
+# Все тесты
+make test-all
 
-```
-pipelines/
-├── api/           # API тесты + AmoCRMClient
-├── ui/            # Playwright + Page Objects
-├── db/            # PostgreSQL тесты
-├── kafka/         # Kafka тесты
-├── load/          # Locust нагрузка
-├── k8s/          # K8s smoke
-├── crossbrowser/    # Selenium Grid
-└── logs/          # Kibana анализ
+# Docker инфраструктура
+make infra-up
+make infra-down
 ```
 
-## Токен
+CI/CD запускается автоматически:
+- При push в main/develop
+- По расписанию (ежедневно)
+- Вручную через workflow_dispatch
 
-Получить долгосрочный токен: https://www.amocrm.ru/developers/content/oauth/long-term
+## Добавление нового пайплайна
+
+1. Создать папку `src/<name>/`
+2. Добавить `__init__.py`, `conftest.py`, тесты
+3. Зарегистрировать маркер в `pyproject.toml`
+4. Добавить job в `.github/workflows/test.yml`
+
+## Приоритеты для портфолио
+
+1. **API tests** — основные, показывают работу с REST API
+2. **UI tests (Playwright)** — современный подход, POM
+3. **Load tests (Locust)** — пороговая проверка
+4. **DB tests** — валидация данных
+5. **Kafka tests** — собы��ийный подход
+
+## Зависимости
+
+```toml
+[project.optional-dependencies]
+core = ["pydantic>=2.10", "pydantic-settings>=2.7", "tenacity>=9.0"]
+api = ["requests>=2.32", "jsonschema>=4.23"]
+ui = ["playwright>=1.49"]
+selenium = ["selenium>=4.20"]
+db = ["psycopg2-binary>=2.9"]
+kafka = ["kafka-python>=2.0"]
+load = ["locust>=2.29"]
+k8s = ["kubernetes>=29.0"]
+logs = ["elasticsearch>=8.17"]
+test = ["pytest>=8.3", "pytest-xdist>=3.6", "allure-pytest>=2.13"]
+```
+
+## Требования
+
+- Python 3.10+
+- Docker (для инфраструктуры)
+- Токен amoCRM API v4
+
+## Лицензия
+
+MIT
