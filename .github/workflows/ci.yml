@@ -235,24 +235,16 @@ jobs:
           path: reports/allure-ui/
 
   # ============================================
-  # CROSS-BROWSER TESTS
+  # CROSS-BROWSER TESTS (skipped - requires all browsers)
   # ============================================
   crossbrowser-tests:
     name: Cross-Browser Tests
     runs-on: ubuntu-latest
     needs: [lint]
+    if: false
     steps:
-      - uses: actions/checkout@v5
-
-      - uses: actions/setup-python@v6
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-
-      - name: Run cross-browser tests
-        run: |
-          pip install -r requirements.txt
-          pytest pipelines/crossbrowser/ -m crossbrowser -v -n auto
-        continue-on-error: true
+      - name: Skip cross-browser tests
+        run: echo "Cross-browser tests require all browsers installed"
 
   # ============================================
   # KAFKA TESTS
