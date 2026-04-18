@@ -357,9 +357,16 @@ jobs:
       - name: Run container smoke test
         run: |
           docker run -d --name test-app -p 8080:8080 amocrm-qa:${{ github.sha }}
-          sleep 10
-          curl -f http://localhost:8080/health || exit 1
-          docker stop test-app
+          for i in {1..30}; do
+            if curl -sf http://localhost:8080/health > /dev/null 2>&1; then
+              echo "Container is healthy"
+              break
+            fi
+            echo "Waiting for container... ($i/30)"
+            sleep 1
+          done
+          curl -f http://localhost:8080/health || (docker logs test-app; docker rm test-app; exit 1)
+          docker rm -f test-app
 
   # ============================================
   # ALLURE REPORT GENERATION

@@ -29,6 +29,6 @@ COPY . .
 EXPOSE 8080
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8080/health || exit 1
+    curl -f http://localhost:8080/health || exit 1
 
-CMD ["python", "-m", "pip", "install", "--no-cache-dir", "-r", "requirements.txt", "&&", "python", "demo-app/app.py"]
+ENTRYPOINT ["python", "demo-app/app.py"]
