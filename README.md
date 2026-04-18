@@ -142,3 +142,8 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for:
 ## 📝 License
 
 MIT License
+
+## Контакты
+- Telegram: @ssrjkk
+- Email: ray013lefe@gmail.com
+- GitHub: https://github.com/ssrjkk
