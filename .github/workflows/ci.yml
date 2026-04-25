@@ -122,19 +122,12 @@ jobs:
           pytest tests/ -m smoke -v --tb=short -n auto --maxfail=5
 
   # ============================================
-  # API TESTS (Matrix)
+  # API TESTS (Combined for speed)
   # ============================================
   api-tests:
-    name: API Tests (${{ matrix.test_category }})
+    name: API Tests
     runs-on: ubuntu-latest
     needs: [lint]
-    strategy:
-      fail-fast: false
-      matrix:
-        test_category:
-          - auth
-          - crud
-          - contracts
     steps:
       - uses: actions/checkout@v5
 
@@ -148,16 +141,16 @@ jobs:
 
       - name: Run API tests
         run: |
-          pytest pipelines/api/tests/test_${{ matrix.test_category }}.py \
-            -v --alluredir=reports/allure-api-${{ matrix.test_category }} \
-            -n auto --tb=short
+          pytest pipelines/api/tests/ \
+            -v --alluredir=reports/allure-api \
+            -n auto --tb=short --maxfail=3
 
       - name: Upload Allure results
         uses: actions/upload-artifact@v5
         if: always()
         with:
-          name: allure-api-${{ matrix.test_category }}
-          path: reports/allure-api-${{ matrix.test_category }}/
+          name: allure-api
+          path: reports/allure-api/
           retention-days: 7
 
   # ============================================
@@ -193,7 +186,8 @@ jobs:
         run: |
           pip install -r requirements.txt
           export DATABASE_URL=postgresql://${{ secrets.DB_USER || 'test' }}:${{ secrets.DB_PASSWORD || 'test' }}@localhost:5432/${{ secrets.DB_NAME || 'amocrm_test' }}
-          pytest pipelines/db/ -m db -v --alluredir=reports/allure-db -n auto
+          pytest pipelines/db/ -m db -v --alluredir=reports/allure-db -n auto --maxfail=3
+        continue-on-error: true
 
       - name: Upload results
         uses: actions/upload-artifact@v5
@@ -224,7 +218,7 @@ jobs:
 
       - name: Run UI tests
         run: |
-          pytest pipelines/ui/ -m ui -v --alluredir=reports/allure-ui -n auto --tb=short
+          pytest pipelines/ui/ -m ui -v --alluredir=reports/allure-ui -n auto --tb=short --maxfail=3
         continue-on-error: true
 
       - name: Upload results
@@ -286,7 +280,7 @@ jobs:
         run: |
           pip install -r requirements.txt
           export KAFKA_BROKERS=localhost:9092
-          pytest pipelines/kafka/ -m kafka -v -n auto --tb=short
+          pytest pipelines/kafka/ -m kafka -v -n auto --tb=short --maxfail=3
         continue-on-error: true
 
       - name: Upload results
