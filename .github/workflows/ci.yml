@@ -255,14 +255,18 @@ jobs:
           path: reports/allure-ui/
 
   # ============================================
-  # CROSS-BROWSER TESTS (schedule only)
+  # CROSS-BROWSER TESTS (push main + schedule)
   # ============================================
   crossbrowser-tests:
     name: Cross-Browser Tests
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs: [lint, unit-tests]
-    if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && github.event.inputs.test_type == 'all')
+    if: github.event_name == 'push' || github.event_name == 'schedule'
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
     steps:
       - uses: actions/checkout@v5
         with:
@@ -284,14 +288,14 @@ jobs:
         continue-on-error: true
 
   # ============================================
-  # KAFKA TESTS (schedule/manual only)
+  # KAFKA TESTS (push main + schedule)
   # ============================================
   kafka-tests:
     name: Kafka Tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: [lint, unit-tests]
-    if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && github.event.inputs.test_type == 'all')
+    if: github.event_name == 'push' || github.event_name == 'schedule'
     services:
       kafka:
         image: confluentinc/cp-kafka:7.5.0
@@ -334,14 +338,14 @@ jobs:
           path: reports/allure-kafka/
 
   # ============================================
-  # LOAD TESTS (schedule/manual only)
+  # LOAD TESTS (push main + schedule)
   # ============================================
   load-tests:
     name: Load Tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs: [lint, unit-tests]
-    if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && github.event.inputs.test_type == 'all')
+    if: github.event_name == 'push' || github.event_name == 'schedule'
     steps:
       - uses: actions/checkout@v5
         with:
@@ -372,14 +376,14 @@ jobs:
           path: reports/load-report.html
 
   # ============================================
-  # BUILD (manual only)
+  # BUILD (push main + develop)
   # ============================================
   build:
     name: Build Docker Image
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs: [lint, unit-tests]
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.test_type == 'all'
+    if: github.event_name == 'push'
     steps:
       - uses: actions/checkout@v5
         with:
