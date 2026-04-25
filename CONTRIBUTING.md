@@ -81,19 +81,15 @@ pytest -m smoke -v
 
 ```
 amoCRM/
-├── pipelines/           # Test pipelines
+├── tests/                 # Unit тесты
+├── pipelines/           # E2E тесты
 │   ├── api/            # API tests
 │   ├── ui/             # UI tests (Playwright)
 │   ├── db/             # Database tests
-│   ├── kafka/          # Kafka tests
-│   ├── load/           # Load tests (Locust)
-│   ├── k8s/            # K8s tests
-│   ├── crossbrowser/   # Selenium Grid tests
-│   └── logs/           # Log analysis
-├── config/             # Configuration
+│   └── kafka/         # Kafka tests
 ├── core/               # Core utilities
-├── fixtures/           # Test fixtures and factories
-├── .github/workflows/  # CI/CD pipelines
+├── fixtures/           # Test fixtures
+├── .github/workflows/# CI/CD pipelines
 └── docker/             # Docker files
 ```
 
